@@ -1,13 +1,14 @@
 # Gallery (illustrative samples only)
 
-Redacted crops for README illustration—not full datasets or competition packages.
+**`method/`** — pipeline visuals (overlays, audit views, ULF demo frames, defect taxonomy).  
+**Root `*.png`** — modality summary posters and extension single-frames (redacted).
 
-| File | Description |
-|------|-------------|
-| `demo_keyframe_*.png` | Frames from `docs/media/*.mp4` (two-pass UI / ULF pipeline) |
-| `modality_*.png` | **Summary posters** (covers), not video frames |
-| `architecture_two_pass_pipeline.jpg` | Legacy schematic (see README Mermaid for current flow) |
-| `dual_track_router_overview.png` | Dual-track schematic |
-| `sample_*.png` | Single-frame extension-track examples (EPB/DMSP/CME/AIA) |
+Not included: full dataset directories, scorecards with competition IDs, or credentials.
 
-**Data policy:** Full OPC roadshow data only via official channels.
+| `method/` file | Role |
+|----------------|------|
+| `nine_defect_taxonomy_overview.png` | Nine-defect QC mapping AIA / EPB / ULF |
+| `aia_pass1_polygon_overlay.png` | Pass1 EUV + annotation overlay |
+| `epb_pass1_label_overlay.png` | Pass1 airglow + mask overlay |
+| `epb_pass2_band_audit.png` | Pass2 band / depletion audit view |
+| `ulf_pipeline_frame_01..03.png` | Consecutive frames from ULF pipeline demo clip |

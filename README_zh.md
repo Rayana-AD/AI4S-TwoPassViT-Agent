@@ -102,57 +102,67 @@ flowchart LR
 
 ---
 
-## 与一般「LLM Agent」范式的联系与区别
+## 方法亮点
 
-| 常见范式（CrewAI / ReAct / 工具调用对话） | 本项目 |
-|----------------------------------------|--------|
-| **ReAct** 开放式循环，模型自选工具直到结束 | **固定 DAG**：规则脚本 → Pass1 → 指标审计 → Pass2；Debater 为**可选侧枝** |
-| **多 Agent** 角色群聊协作 | **单编排入口**（`run_pipeline.py`）+ **分阶段辩题**（每阶段固定交付物） |
-| 跨会话 **向量长期记忆** | 基准评测 **run 级隔离**；辩题侧 **分阶段裁剪上下文**，防串扰 |
-| 模型在文案中**猜数字** | 数字由 **Python 物理算子**产出；Pass2 **强制引用**（ULF Pass2 **纯文本、不传波形图**） |
-| **Function Calling** 调 HTTP/数据库 | 「工具」= **批处理 QC 脚本**；扩展轨增加 **沙箱内代码生成** |
-| 单轮 Prompt / 纯 CoT 做质检 | **两阶段** + 中间 jsonl + **九类缺陷** CSV 契约 |
-| 全链路 LangGraph | `graph.py` 用于记录级规则图；主路展为 **子进程流水线** 以保证可复现 |
+### 与传统 Agent 架构：联系与区别
 
-**一句话**：更接近 **Agent Harness + 领域工作流**，大模型做**有锚点的终审 / 代码起草**，而非对话即评分。
+| 常见范式（ReAct / 多 Agent 协作 / Tool Calling） | 本项目 |
+|-----------------------------------------------|--------|
+| 模型循环规划并调工具，数值常在文本里「猜」 | **先本地物理脚本算指标**，Pass2 **必须引用**算子输出 |
+| 长期向量记忆、跨任务共享 | **分级记忆**：评测 run 隔离；辩题 **按 v0/v1/v2 切片** 防膨胀 |
+| 多角色开放式协商 | **单编排器 + 固定辩题 DAG**，交付物是可执行 `auxiliary_metrics.py` |
+| 通用文档 RAG | **Router 原型 RAG** + **门控 Teaching**（只教结构，远族降级） |
+| 模型即评分器 | **模型做终审**；九类缺陷与 CSV 由 **规则轨 + 接地 Pass2** 产出 |
+| 任意 Python 执行 | 仅 Debater 草稿进 **AST 沙箱**；主轨逻辑不变 |
 
----
+仍采用现代栈常见组件：**LangGraph**（规则图）、结构化 Prompt、可选 API、**smoke / verify** 回归门禁。
 
-## 安全性与可信（模型 + 代码）
+### 安全性与可信
 
-| 层级 | 机制 |
+| 层级 | 做法 |
 |------|------|
-| **防幻觉** | Pass2 须引用标量；ULF 的 **DSP 在本地算完** 再喂文本 Pass2 |
-| **基准集防污染** | 冻结 **12 个 dirId** → 纯规则轨，**关闭 Debater**，辅助脚本不进入计分路径 |
-| **模型生成代码** | `script_sandbox.py`：AST 白名单 import、禁止 `exec/eval/__import__`、只读 `open`、返回值须 JSON 可序列化 |
-| **辅助指标边界** | 仅当设置 `DEBATER_AUXILIARY_SCRIPT` 时桥接；**不替代** `objectOverall` 主轨输出 |
-| **教学安全** | `do_not_copy_when` 对远族仪器 **降级提示**，避免跨域照搬深测逻辑 |
-| **供应链** | 仓库无密钥；可选挂载 `secrets.yaml`；离线 Debater / 烟测 **无需外网** |
-| **回归门禁** | `smoke_test` 指纹 + `verify_extended_pipeline` + `check_pipeline_completeness` |
+| **抗幻觉** | Pass2 强制引用环带/窄带/时间窗数值；ULF Pass2 **纯文本**读预计算序列，不传波形图 |
+| **权限分离** | 12 个基准 `dirId` **仅规则轨**，强制关闭 Debater 桥接，成绩零漂移 |
+| **不可信代码** | `script_sandbox`：AST 白名单 import、禁止写文件、`eval` 封禁、返回值 JSON 可序列化 |
+| **可选注入** | 仅当设置 `DEBATER_AUXILIARY_SCRIPT`；默认主轨与初版一致 |
+| **供应链** | 仓库无密钥；`secrets.yaml` 运行时挂载；Docker + 固定依赖 |
+| **可审计** | Teaching / 演进 / 对话落盘；烟测指纹 `last_run.json` |
 
 ---
 
-## 可视化 Gallery
+## Gallery（方法示意，非封面）
 
-### 演示视频关键帧（非封面）
+三模态九类缺陷质检对照总览：
 
-截取自 [`agent_workflow_demo.mp4`](docs/media/agent_workflow_demo.mp4)、[`ulf_signal_pipeline_demo.mp4`](docs/media/ulf_signal_pipeline_demo.mp4)。
+![九类缺陷对照总览](docs/gallery/method/nine_defect_taxonomy_overview.png)
 
-| AIA 两阶段界面 | EPB 两阶段界面 | ULF 滤波 / Pass2 轨 |
+### AIA — 多边形叠加 → 环带算子 → Pass2
+
+| Pass1：JSON 轮廓叠加在日冕 EUV 上 |
+|:---:|
+| ![](docs/gallery/method/aia_pass1_polygon_overlay.png) |
+
+### EPB — 掩膜叠加 → 外扩窄带耗空审计
+
+| Pass1 掩膜叠加 | Pass2 带域 / 残差审计示意 |
+|:---:|:---:|
+| ![](docs/gallery/method/epb_pass1_label_overlay.png) | ![](docs/gallery/method/epb_pass2_band_audit.png) |
+
+### ULF — 带通/包络管线（演示片三连帧）
+
+| 帧 1 | 帧 2 | 帧 3 |
 |:---:|:---:|:---:|
-| ![](docs/gallery/demo_keyframe_aia_pass.png) | ![](docs/gallery/demo_keyframe_epb_pass.png) | ![](docs/gallery/demo_keyframe_ulf_pass.png) |
+| ![](docs/gallery/method/ulf_pipeline_frame_01.png) | ![](docs/gallery/method/ulf_pipeline_frame_02.png) | ![](docs/gallery/method/ulf_pipeline_frame_03.png) |
 
-### 模态说明海报（仅封面示意）
+配套短视频：[ulf_signal_pipeline_demo.mp4](docs/media/ulf_signal_pipeline_demo.mp4)
 
-| AIA 太阳 EUV | EPB 气辉 | ULF 脉动 |
-|:---:|:---:|:---:|
-| ![](docs/gallery/modality_aia_solar_euv.png) | ![](docs/gallery/modality_epb_airglow.png) | ![](docs/gallery/modality_ulf_magnetometer.png) |
+### 扩展仪器族（单帧脱敏）
 
-### 扩展轨（单帧示意，非整目录）
+| DMSP 极光 UV | CME 日冕仪 |
+|:---:|:---:|
+| ![](docs/gallery/sample_dmsp_aurora_uv.png) | ![](docs/gallery/sample_cme_coronagraph.png) |
 
-| EPB 叠加质检 | DMSP 极光 UV | CME 日冕仪 | AIA 活动区（降采样） |
-|:---:|:---:|:---:|:---:|
-| ![](docs/gallery/sample_epb_overlay_qc.png) | ![](docs/gallery/sample_dmsp_aurora_uv.png) | ![](docs/gallery/sample_cme_coronagraph.png) | ![](docs/gallery/sample_aia_active_region.png) |
+三模态概要海报（仅作导读）：[AIA](docs/gallery/modality_aia_solar_euv.png) · [EPB](docs/gallery/modality_epb_airglow.png) · [ULF](docs/gallery/modality_ulf_magnetometer.png)
 
 详见 [docs/gallery/README.md](docs/gallery/README.md)。
 

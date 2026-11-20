@@ -102,57 +102,67 @@ Legend: **solid** = deterministic Python; **dashed policy** = LLM only when secr
 
 ---
 
-## vs typical “LLM Agent” stacks
+## Method highlights
 
-| Typical pattern (CrewAI / ReAct / tool-calling chat) | This project |
-|------------------------------------------------------|--------------|
-| Open-ended **ReAct** loop: model picks tools until stop | **Fixed DAG**: rule scripts → Pass1 → metric audit → Pass2; optional Debater is a **side branch** |
-| **Multi-agent** roles negotiate in chat | **Single orchestrator** (`run_pipeline.py`) + phase-structured **Debater** (deliverables per stage) |
-| Long **vector memory** across sessions | **Run-local memory** for benchmarks; Debater uses **phase-trimmed context** (no cross-run leakage) |
-| Model **computes or guesses** numbers in prose | Numbers come from **Python physics ops**; Pass2 must **quote** them (ULF Pass2 is **text-only**, no waveform image) |
-| **Function calling** to HTTP/DB tools | “Tools” are **batch QC scripts**; extension track adds **sandboxed code generation** (`auxiliary_metrics`) |
-| One-shot or CoT prompt for QC | **Two-pass** with mandatory intermediate jsonl + **nine-defect** CSV schema |
-| LangGraph everywhere | LangGraph in **`graph.py`** (record-level rules); main roadshow path is **subprocess pipeline** for reproducibility |
+### vs conventional LLM / Agent stacks
 
-**Takeaway:** closer to **agent harness + domain workflow** than a general conversational agent—the LLM is a **grounded judge / code drafter**, not the score owner.
+| Typical pattern (ReAct, CrewAI, tool-calling bots) | This project |
+|----------------------------------------------------|--------------|
+| LLM plans and calls tools in a loop; numbers often guessed in prose | **Physics scripts compute first**; Pass 2 must **quote** script outputs |
+| One chat memory + vector store for all sessions | **Tiered memory**: benchmark runs isolated; debater context **sliced by phase** (v0/v1/v2) |
+| Multi-agent roles negotiate open-ended tasks | **Single orchestrator** + **fixed phase DAG** (debate manifest); deliverable = `auxiliary_metrics.py`, not free text |
+| Generic RAG over docs | **Router RAG** on instrument archetypes + **gated Teaching** (structure only, `do_not_copy_when` on far families) |
+| Model is the scorer | **Model is reviewer**; `objectOverall` and nine-defect CSV come from **deterministic QC + grounded Pass 2** |
+| Code execution often full Python | **AST sandbox** for model-written helpers only; main track unchanged |
 
----
+We still share building blocks with modern stacks: **LangGraph** for rule+vision graphs in `graph.py`, structured prompts, optional API tool use for Pass 1/2, and regression harnesses (`smoke_test`, `verify_extended_pipeline`).
 
-## Safety & trust (model + code)
+### Safety & trust
 
-| Layer | What we enforce |
-|-------|------------------|
-| **Anti-hallucination** | Pass2 prompts require cited scalars; ULF decouples waveform **DSP in Python** from Pass2 **text** reasoning |
-| **Benchmark integrity** | Frozen **12 dir IDs** → rule-only track, Debater **disabled**, no auxiliary injection on the scoring path |
-| **LLM-generated code** | `script_sandbox.py`: AST allow-list imports, blocked `exec/eval/__import__`, read-only `open`, JSON-serializable returns only |
-| **Auxiliary scope** | `auxiliary_bridge` only runs when `DEBATER_AUXILIARY_SCRIPT` is set; does **not** replace `objectOverall` QC |
-| **Teaching safety** | `do_not_copy_when` downgrades prompts for **far** instrument families to avoid cross-domain copy-paste |
-| **Supply chain** | No secrets in repo; `secrets.yaml` mount optional; offline Debater / smoke paths need **no API** |
-| **Regression** | `smoke_test` fingerprints + `verify_extended_pipeline` + `check_pipeline_completeness` |
+| Layer | Mechanism |
+|-------|-----------|
+| **Anti-hallucination** | Pass 2 prompt contract: cite ring/band/window metrics; ULF Pass 2 is **text-only** on precomputed series (no waveform-as-image guessing) |
+| **Authority separation** | 12 benchmark `dirId`s → **rule track only**; Debater bridge disabled so scores cannot drift from frozen baselines |
+| **Untrusted code** | `script_sandbox.py`: AST allow-list imports, no write `open`, blocked `eval`/`__import__`, JSON-serializable returns only |
+| **Optional injection** | `DEBATER_AUXILIARY_SCRIPT` env gate; default off; `physics_inspect` unchanged without it |
+| **Supply chain** | No secrets in repo; API via mounted `secrets.yaml`; Docker + pinned `requirements.txt` |
+| **Audit** | Debater writes `TEACHING_CONTEXT`, `EVOLUTION_AUDIT`, `DIALOGUE_BUNDLE` under workspace; smoke fingerprints in `last_run.json` |
 
 ---
 
-## Gallery
+## Gallery (method visuals, not cover art)
 
-### Demo keyframes (from workflow videos)
+Shared reference for the nine-defect object QC framing:
 
-Frames extracted from [`agent_workflow_demo.mp4`](docs/media/agent_workflow_demo.mp4) and [`ulf_signal_pipeline_demo.mp4`](docs/media/ulf_signal_pipeline_demo.mp4)—**not** marketing covers.
+![Nine-defect taxonomy across AIA / EPB / ULF](docs/gallery/method/nine_defect_taxonomy_overview.png)
 
-| AIA two-pass UI | EPB two-pass UI | ULF filter / Pass2 track |
+### AIA — polygon overlay → ring metrics → Pass 2
+
+| Pass 1 overlay (JSON on EUV) |
+|:---:|
+| ![](docs/gallery/method/aia_pass1_polygon_overlay.png) |
+
+### EPB — mask overlay → band depletion audit
+
+| Pass 1 overlay | Pass 2 band / depletion view |
+|:---:|:---:|
+| ![](docs/gallery/method/epb_pass1_label_overlay.png) | ![](docs/gallery/method/epb_pass2_band_audit.png) |
+
+### ULF — filtered waveform demo (consecutive frames from pipeline clip)
+
+| Stage t₁ | Stage t₂ | Stage t₃ |
 |:---:|:---:|:---:|
-| ![](docs/gallery/demo_keyframe_aia_pass.png) | ![](docs/gallery/demo_keyframe_epb_pass.png) | ![](docs/gallery/demo_keyframe_ulf_pass.png) |
+| ![](docs/gallery/method/ulf_pipeline_frame_01.png) | ![](docs/gallery/method/ulf_pipeline_frame_02.png) | ![](docs/gallery/method/ulf_pipeline_frame_03.png) |
 
-### Modality summary posters (covers only)
+Short video: [ulf_signal_pipeline_demo.mp4](docs/media/ulf_signal_pipeline_demo.mp4)
 
-| AIA solar EUV | EPB airglow | ULF Pi2 waveform |
-|:---:|:---:|:---:|
-| ![](docs/gallery/modality_aia_solar_euv.png) | ![](docs/gallery/modality_epb_airglow.png) | ![](docs/gallery/modality_ulf_magnetometer.png) |
+### Extension families (single frames, redacted)
 
-### Extension track (single-frame examples)
+| DMSP aurora UV | CME coronagraph |
+|:---:|:---:|
+| ![](docs/gallery/sample_dmsp_aurora_uv.png) | ![](docs/gallery/sample_cme_coronagraph.png) |
 
-| EPB overlay QC | DMSP aurora UV | CME coronagraph | AIA AR (resized) |
-|:---:|:---:|:---:|:---:|
-| ![](docs/gallery/sample_epb_overlay_qc.png) | ![](docs/gallery/sample_dmsp_aurora_uv.png) | ![](docs/gallery/sample_cme_coronagraph.png) | ![](docs/gallery/sample_aia_active_region.png) |
+Modality summary posters (high-level only): [AIA](docs/gallery/modality_aia_solar_euv.png) · [EPB](docs/gallery/modality_epb_airglow.png) · [ULF](docs/gallery/modality_ulf_magnetometer.png)
 
 See [docs/gallery/README.md](docs/gallery/README.md).
 
