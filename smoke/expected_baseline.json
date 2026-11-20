@@ -1,0 +1,83 @@
+{
+  "runs": [
+    {
+      "modality": "AIA",
+      "sec": 7.69,
+      "fingerprint": {
+        "path": "/Users/rayana/Desktop/空间科学/路演结果/_smoke_AIA_AR_sample_z4h764sf2d_AIA对象质检.csv",
+        "n_rows": 3,
+        "columns_head": [
+          "dirId",
+          "objectId",
+          "labelFile",
+          "ruleVersion",
+          "objectOverall",
+          "九1_文件配对",
+          "objectOverallScored",
+          "missHeuristicLikely"
+        ],
+        "n_columns": 25,
+        "sample": {
+          "objectId": "044NWtthUObMwGfbeBex.png",
+          "objectOverall": "待判定",
+          "九1_文件配对": "通过",
+          "九3b_轮廓贴合": "待判定",
+          "nRegions": "1"
+        }
+      }
+    },
+    {
+      "modality": "EPB",
+      "sec": 13.24,
+      "fingerprint": {
+        "path": "/Users/rayana/Desktop/空间科学/路演结果/_smoke_EPB_seg_sample_fbbqy66u2d_EPB对象质检.csv",
+        "n_rows": 3,
+        "columns_head": [
+          "dirId",
+          "objectId",
+          "labelFile",
+          "ruleVersion",
+          "objectOverall",
+          "objectOverallScored",
+          "九1_文件配对",
+          "九2_孤儿标注"
+        ],
+        "n_columns": 25,
+        "sample": {
+          "objectId": "03Ii57nu30eeV3xWHiCl.png",
+          "objectOverall": "待判定",
+          "九1_文件配对": "通过",
+          "九3b_轮廓贴合": "待判定",
+          "nRegions": "1"
+        }
+      }
+    },
+    {
+      "modality": "ULF",
+      "sec": 0.62,
+      "fingerprint": {
+        "path": "/Users/rayana/Desktop/空间科学/路演结果/_smoke_ULF_sample_xfnogkdey9_ULF对象质检.csv",
+        "n_rows": 3,
+        "columns_head": [
+          "dirId",
+          "objectId",
+          "labelFile",
+          "ruleVersion",
+          "objectOverall",
+          "objectOverallScored",
+          "九1_文件配对",
+          "九2_孤儿标注"
+        ],
+        "n_columns": 26,
+        "sample": {
+          "objectId": "00JxyUyvaV03UYrZg937.csv",
+          "objectOverall": "待判定",
+          "九1_文件配对": "通过",
+          "九3b_轮廓贴合": "待判定",
+          "nRegions": "0"
+        }
+      }
+    }
+  ],
+  "limit": 3
+}

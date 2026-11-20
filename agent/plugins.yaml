@@ -1,0 +1,9 @@
+plugins:
+  - name: modality_detect
+    version: v1
+    enabled: true
+    entry: package/agent_modules/modality_detect.py
+  - name: physics_metrics
+    version: physics-informed-v1
+    enabled: true
+    entry: package/agent_modules/physics_metrics.py

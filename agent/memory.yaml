@@ -1,0 +1,8 @@
+memory:
+  scope: run_local
+  stores:
+    - path: ROADSHOW_RESULTS
+      write: postprocess_outputs
+      read: [object_qc, smoke]
+  persistenceAcrossRuns: false
+  consistency: copy_on_write_from_frozen_jsonl

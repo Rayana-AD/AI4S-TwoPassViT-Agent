@@ -1,0 +1,34 @@
+{
+  "route": "physics-informed Pass1+Pass2 (physics_inspect.run_two_pass)",
+  "rule_preprocessing": [
+    "audits.json_consistency / waveform_window / mechanical_coverage_audit",
+    "physics_metrics ring_audit | band_audit | threshold_calibration+window_audit"
+  ],
+  "agent_modules_core": [
+    "physics_inspect.py",
+    "physics_metrics.py",
+    "physics_prompts.py",
+    "modality_detect.py",
+    "aia_object_qc.py",
+    "epb_object_qc.py",
+    "ulf_object_qc.py",
+    "aia_roadshow_aggregate.py",
+    "epb_roadshow_aggregate.py",
+    "ulf_roadshow_aggregate.py"
+  ],
+  "路演结果_scripts": [
+    "aia_dir_object_qc_csv.py",
+    "epb_dir_object_qc_csv.py",
+    "ulf_dir_object_qc_csv.py",
+    "physics_informed_aia.py",
+    "physics_informed_epb.py",
+    "physics_informed_ulf.py",
+    "aia_z4_full_pipeline.py",
+    "epb_fbbqy_full_pipeline.py",
+    "ulf_xfnog_full_pipeline.py"
+  ],
+  "docs_in_this_folder": "docs/*.md (copies of 九类说明)",
+  "package_copy": "package/agent_modules includes physics_prompts.py physics_thresholds.json",
+  "docker": "docker/Dockerfile (replaces 路演交付/02-原型与Docker/* and 交付物/01-原型/Dockerfile)",
+  "sync": "bash sync_from_repo.sh"
+}

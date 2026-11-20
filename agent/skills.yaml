@@ -1,0 +1,17 @@
+skills:
+  - name: aia_nine_defects
+    version: rules-roadshow-20261102
+    scope: AIA
+    knowledge: docs/AIA九类缺陷说明.md
+  - name: epb_nine_defects
+    version: rules-roadshow-20261102
+    scope: EPB
+    knowledge: docs/EPB九类缺陷说明.md
+  - name: ulf_nine_defects
+    version: rules-roadshow-20261102
+    scope: ULF
+    knowledge: docs/ULF九类缺陷说明.md
+  - name: physics_prompts
+    version: physics-informed-v1
+    scope: all
+    knowledge: package/agent_modules/physics_prompts.py

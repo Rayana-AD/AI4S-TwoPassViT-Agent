@@ -1,0 +1,180 @@
+{
+  "version": "2026-11-19",
+  "intent": "结构教学法：只教 Pass 前/中/后分层与契约，不向新数据灌输 z4/fbbqy/xfnog 的实现正文。",
+  "frozen_note": "下列 entry 对应路演深测已冻结脚本；debater 产物不得写入 package/agent_modules/physics_*.py 或 星海舰队。",
+  "pipeline_layers": [
+    {
+      "layer": "L-1 路由",
+      "role": "modality / dataset_router → spine",
+      "deep_refs": ["modality_detect", "route_dataset_directory"]
+    },
+    {
+      "layer": "L0 规则",
+      "role": "audits + *_object_qc 九类（可无 API）",
+      "deep_refs": ["aia_object_qc", "epb_object_qc", "ulf_object_qc"]
+    },
+    {
+      "layer": "L1 辅助·前",
+      "role": "本地算子 + 叠加图/波形图，供 Pass1",
+      "deep_refs": ["label_overlay", "render_waveform", "aia_metrics_for_image", "epb_metrics_for_image", "ulf_pi2_metrics"]
+    },
+    {
+      "layer": "L2 Pass1",
+      "role": "视觉/波形图 + metrics 摘要；阈值反估，不终判漏标",
+      "deep_refs": ["physics_inspect.inspect_pass1", "ulf_threshold_calibration"]
+    },
+    {
+      "layer": "L3 辅助·中",
+      "role": "Pass1 与 Pass2 之间的确定性审计 JSON",
+      "deep_refs": ["ring_audit_for_image", "_epb_miss_band_audit", "ulf_pass2_audit_from_thresholds"]
+    },
+    {
+      "layer": "L4 Pass2",
+      "role": "必须引用 L3 数字；ULF 可无图",
+      "deep_refs": ["inspect_pass2", "ULF_PASS2_TASK"]
+    },
+    {
+      "layer": "L5 目录",
+      "role": "aggregate + postprocess",
+      "deep_refs": ["*_roadshow_aggregate", "dir_postprocess"]
+    },
+    {
+      "layer": "L* debater 实验",
+      "role": "auxiliary_metrics 沙箱；衔接 L1/L2，不替代 L3",
+      "deep_refs": ["experiments/scientific_debater/auxiliary_metrics.py"]
+    }
+  ],
+  "deep_cases": [
+    {
+      "id": "AIA_z4",
+      "dir_pattern": "AIA_AR_sample_z4*",
+      "pipeline": "AIA",
+      "problem_that_triggered_scripts": [
+        "规则 0 硬伤仍 100 分但 473 框轮廓不贴",
+        "HEK 框非全盘亮区普查",
+        "boxed_only 导致 QC 0 行"
+      ],
+      "auxiliary_before_pass1": [
+        {
+          "symbol": "aia_metrics_for_image + render_json_overlay",
+          "contract": "metrics dict + 512 侧 dataset 红框 PNG",
+          "teach": "VLM 看标注轮廓而非自画框"
+        },
+        {
+          "symbol": "missed_label_candidates_aia",
+          "contract": "候选列表 + 面积比例门限",
+          "teach": "诊断轨与计分漏标分离"
+        }
+      ],
+      "between_pass1_pass2": [
+        {
+          "symbol": "ring_audit_for_image",
+          "contract": "per-region ring_delta + adaptive d",
+          "teach": "Pass2 只读这些数做终裁"
+        }
+      ],
+      "after_pass2": [
+        {
+          "symbol": "aia_roadshow_aggregate",
+          "contract": "九7 可能未标亮区不进 C09 终判",
+          "teach": "目录政策与对象 Pass2 分列"
+        }
+      ],
+      "do_not_copy_when": [
+        "无 hek_event_annotation、只有 specialShapes（DMSP）",
+        "日冕遮挡盘为主、无活动区框（CME）",
+        "波形/CSV 主数据（ULF）"
+      ],
+      "analogy_for_new_data_one_liner": "若仅有 ROI 框无 HEK，学「红框叠加 + 局部对比」分工，不学环带 Δ 参数。"
+    },
+    {
+      "id": "EPB_fbbqy",
+      "dir_pattern": "EPB_seg_sample_fbbqy*",
+      "pipeline": "EPB",
+      "problem_that_triggered_scripts": [
+        "1024×512 声明与真图不一致",
+        "气辉暗条不能套 AIA 小环",
+        "缺文件/__OOV__ 不能被 VLM 推翻"
+      ],
+      "auxiliary_before_pass1": [
+        {
+          "symbol": "epb_metrics_for_image + band 预计算",
+          "contract": "depletion_band / mask 几何",
+          "teach": "细长暗条用 band σ 不用 ring 0.5d"
+        },
+        {
+          "symbol": "missed_label_candidates_epb",
+          "contract": "连通暗区候选",
+          "teach": "Pass1 目视，Pass2 读 band_audit"
+        }
+      ],
+      "between_pass1_pass2": [
+        {
+          "symbol": "_epb_miss_band_audit",
+          "contract": "外扩窄带耗空 σ",
+          "teach": "与 AIA ring_audit 同槽位、不同算子"
+        }
+      ],
+      "after_pass2": [
+        {
+          "symbol": "epb_roadshow_aggregate",
+          "contract": "尺寸列与 C02 联动",
+          "teach": "规则硬伤优先于轮廓待复核"
+        }
+      ],
+      "do_not_copy_when": [
+        "data/label 太阳 4096 HEK",
+        "全盘面 UV 极光条带（DMSP）",
+        "纯事件目录无 mask"
+      ],
+      "analogy_for_new_data_one_liner": "极区伪彩条带可借「亮背景上暗结构带」思路，但指标应改名，不得复制 band_audit 常数。"
+    },
+    {
+      "id": "ULF_xfnog",
+      "dir_pattern": "ULF_sample_xfnog*",
+      "pipeline": "ULF",
+      "problem_that_triggered_scripts": [
+        "窗超出 CSV 末尾",
+        "Pass2 看图幻觉",
+        "无金标 C09"
+      ],
+      "auxiliary_before_pass1": [
+        {
+          "symbol": "ulf_sliding_window_scan + threshold_calibration",
+          "contract": "反估窗宽/阈值 CI",
+          "teach": "Pass1 输出 threshold_proposal"
+        },
+        {
+          "symbol": "render_waveform(draw_windows=True)",
+          "contract": "Pass1 专用波形 PNG",
+          "teach": "Pass2 不传图"
+        }
+      ],
+      "between_pass1_pass2": [
+        {
+          "symbol": "ulf_pass2_audit_from_thresholds",
+          "contract": "window_audit 数字轨",
+          "teach": "Pass2 纯文本引数"
+        }
+      ],
+      "after_pass2": [
+        {
+          "symbol": "ulf_object_qc windowAudit 列",
+          "contract": "无 jsonl 时 offline window_audit",
+          "teach": "规则 CSV 与 physics 轨对齐"
+        }
+      ],
+      "do_not_copy_when": [
+        "任何以 PNG 为主的空间标注任务",
+        "目录仅有 catalog 无波形"
+      ],
+      "analogy_for_new_data_one_liner": "时间序列类才学「前-Pass 标定、后-Pass 文本引数」；图像类勿套用 Pass2 无图。"
+    }
+  ],
+  "debater_contract": {
+    "single_entry": "只写一个 auxiliary_metrics()，多轮 refine 改同一函数",
+    "not_a_fork_of": ["physics_metrics.py", "prepare_aia", "prepare_epb", "prepare_ulf"],
+    "feeds": "Pass1 附加上下文或 L0 规则旁路；Pass2 仍以主轨 audit JSON 为准",
+    "sandbox": ["numpy", "PIL", "math", "json"]
+  }
+}

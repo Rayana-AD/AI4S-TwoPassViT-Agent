@@ -1,0 +1,20 @@
+rules:
+  - name: rules-roadshow-20261102
+    version: "20261102"
+    type: field_consistency
+    checks: [C01, C02, C03, C04, C05]
+  - name: aia-qc-v2
+    version: v2
+    type: object_qc
+    modality: AIA
+  - name: epb-qc-v1
+    version: v1
+    type: object_qc
+    modality: EPB
+  - name: ulf-qc-v1
+    version: v1
+    type: object_qc
+    modality: ULF
+violations:
+  default_status: 不合理
+  pending: 待判定

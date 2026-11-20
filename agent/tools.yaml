@@ -1,0 +1,23 @@
+tools:
+  - name: aia_dir_object_qc
+    version: aia-qc-v2
+    entry: package/scripts/aia_dir_object_qc_csv.py
+    deterministic: true
+    timeoutSec: 7200
+  - name: epb_dir_object_qc
+    version: epb-qc-v1
+    entry: package/scripts/epb_dir_object_qc_csv.py
+    deterministic: true
+  - name: ulf_dir_object_qc
+    version: ulf-qc-v1
+    entry: package/scripts/ulf_dir_object_qc_csv.py
+    deterministic: true
+  - name: physics_informed_pass
+    version: physics-informed-v1
+    entry: package/agent_modules/physics_informed_roadshow.py
+    deterministic: false
+    requiresSecret: true
+  - name: smoke_test
+    version: smoke-v1
+    entry: smoke/smoke_test.py
+    deterministic: true

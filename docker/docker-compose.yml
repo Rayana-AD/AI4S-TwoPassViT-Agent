@@ -1,0 +1,23 @@
+# 星海舰队 · OPC 内部烟测（DEL-2 / DEL-3）
+# 用法见 星海舰队/02_部署与使用说明.md
+services:
+  agent:
+    image: space-science-agent:latest
+    platform: linux/amd64
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      ROADSHOW_DATA: /data
+      ROADSHOW_RESULTS: /results
+      MODEL_DISABLE_THINKING: "1"
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      # 路演三深测目录（评委自备 OPC 数据或本机 路演数据/）
+      - ${ROADSHOW_DATA_HOST:-../../路演数据}:/data:ro
+      # 冻结 Pass2 + 烟测指纹对照（含 AIA/EPB/ULF_physics_informed.jsonl）
+      - ${ROADSHOW_RESULTS_HOST:-../results}:/results
+      # 可选：VLM Pass1/2 重跑
+      # - ${SECRETS_HOST:-../../secrets.yaml}:/app/secrets.yaml:ro
+    working_dir: /app/Agent-Pipeline
+    command: ["smoke/smoke_test.py"]

@@ -1,0 +1,23 @@
+{
+  "source": "/Users/rayana/Desktop/空间科学/colab_subset/publish",
+  "fallback_note": "",
+  "seed": 0,
+  "AIA": {
+    "n": 78,
+    "cnr_p10": -0.5303,
+    "cnr_p50": -0.1498,
+    "cnr_min_plausible": -0.9033,
+    "flux_ratio_vs_quiet_p50": 9.7867,
+    "note": "AR 框内 CNR 低于 cnr_min_plausible 时标注可疑（参考公开包，不是绝对真值）"
+  },
+  "EPB": {
+    "n": 42,
+    "depletion_sigma_p50": -0.0912,
+    "depletion_sigma_p10": -0.2417,
+    "note": "EPB 多边形内 depletion_sigma 过低可能未对准暗条"
+  },
+  "ULF": {
+    "peak_over_quiet_min": 2.0,
+    "note": "仅 API 提示用缺省参考；ULF Pass1 应输出 threshold_proposal，Pass2 用 window_audit"
+  }
+}

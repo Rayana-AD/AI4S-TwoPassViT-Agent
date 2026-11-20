@@ -1,0 +1,29 @@
+# Secrets & local config
+secrets.yaml
+**/.env
+**/.env.*
+**/secrets.*
+
+# Data & competition deliverables (not for public repo)
+路演/
+交付/
+路演数据/
+colab_subset/
+results/
+experiments/
+补充提交*/
+*.zip
+*.tar
+*.tar.gz
+
+# Build & caches
+__pycache__/
+*.pyc
+.venv/
+.Python
+.DS_Store
+
+# Large local artifacts
+build_pack.py
+S2_*.pptx
+星海舰队/

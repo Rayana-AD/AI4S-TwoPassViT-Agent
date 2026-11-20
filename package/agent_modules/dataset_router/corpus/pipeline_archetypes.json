@@ -1,0 +1,120 @@
+[
+  {
+    "archetype_id": "sdo_aia_hek_ar",
+    "title": "SDO/AIA full-disk EUV + HEK activity-region boxes",
+    "pipeline": "AIA",
+    "physics_track": "ring_contrast_delta",
+    "layout_hints": ["data/label", "flat_png_json"],
+    "annotation_markers": ["hek_event_annotation", "science_annotation.specialShapes"],
+    "visual_hints": ["full_disk_bright", "high_dynamic_range", "solar_disk_centric"],
+    "typical_resolution": "4096x4096",
+    "references": [
+      {"label": "How to Process AIA Data (SDO Guide)", "url": "https://lmsal.com/sdodocs/doc/dcur/SDOD0060.zip/zip/entry/sdoguidese7.html"},
+      {"label": "Guide to SDO Data Analysis (PDF)", "url": "https://aia.cfa.harvard.edu/trace/SSXG/ynsu/Ji/SDO_Data_Analysis_guide.pdf"},
+      {"label": "HEK API / Annotator", "url": "https://lmsal.com/hek/api.html"},
+      {"label": "HEK overview paper", "url": "https://doi.org/10.1007/s11207-010-9624-2"}
+    ],
+    "notes": "Polygon or rotated-rectangle pixel rings; event-level HEK metadata; QC uses adaptive ring contrast."
+  },
+  {
+    "archetype_id": "hmi_sharp_ar",
+    "title": "HMI continuum / magnetogram activity regions (HEK-like boxes)",
+    "pipeline": "AIA",
+    "physics_track": "ring_contrast_delta",
+    "layout_hints": ["data/label"],
+    "annotation_markers": ["hek_event_annotation", "science_annotation"],
+    "visual_hints": ["full_disk", "grayscale_or_low_chroma"],
+    "typical_resolution": "4096x4096",
+    "references": [
+      {"label": "SDO HMI JSOC", "url": "https://jsoc.stanford.edu/"},
+      {"label": "HEK", "url": "https://lmsal.com/hek/api.html"}
+    ],
+    "notes": "Route to same object-QC spine as AIA (spatial box + ring audit)."
+  },
+  {
+    "archetype_id": "lasco_cme_catalog",
+    "title": "Coronagraph CME / limb events (catalog JSON, sparse boxes)",
+    "pipeline": "AIA",
+    "physics_track": "ring_contrast_delta",
+    "layout_hints": ["data/label", "label_heavy"],
+    "annotation_markers": ["hek_event_annotation", "cme"],
+    "visual_hints": ["occulted_disk", "limb_corona"],
+    "references": [
+      {"label": "SOHO/LASCO CME catalog", "url": "https://cdaw.gsfc.nasa.gov/CME_list/"},
+      {"label": "HEK event classes", "url": "https://lmsal.com/hek/api.html"}
+    ],
+    "notes": "Often label-only or few png pairs; run QC with all-labels pairing."
+  },
+  {
+    "archetype_id": "dmsp_ssusi_aurora",
+    "title": "DMSP SSUSI auroral UV disk images + ROI special shapes",
+    "pipeline": "AIA",
+    "physics_track": "special_shapes_hek_like",
+    "layout_hints": ["flat_png_json"],
+    "annotation_markers": ["science_annotation.specialShapes", "hek_event_annotation"],
+    "visual_hints": ["auroral_oval", "nadir_disk", "uv_false_color_or_grayscale"],
+    "references": [
+      {"label": "CDAWeb DMSP SSUSI skeleton", "url": "https://cdaweb.gsfc.nasa.gov/pub/software/cdawlib/0SKELTABLES/dmspf18_r0_ssusi_00000000_v01.skt"},
+      {"label": "pysatNASA dmsp_ssusi", "url": "https://pysatnasa.readthedocs.io/en/develop/_modules/pysatNASA/instruments/dmsp_ssusi.html"},
+      {"label": "JHUAPL SSUSI data products", "url": "http://ssusi.jhuapl.edu/data_products"},
+      {"label": "NOAA DMSP format notes (PDF)", "url": "https://data.ngdc.noaa.gov/platforms/solar-space-observing-satellites/dmsp/doc/AFRL%20ASCII%20and%20Binary%20File%20Format%20Descriptions.pdf"}
+    ],
+    "notes": "Flat layout; specialShapes boxes — same QC spine as AIA, not EPB mask."
+  },
+  {
+    "archetype_id": "epb_allsky_airglow_mask",
+    "title": "All-sky airglow EPB plasma depletion masks",
+    "pipeline": "EPB",
+    "physics_track": "depletion_sigma_band",
+    "layout_hints": ["flat_png_json"],
+    "annotation_markers": ["science_annotation.mask.shapes", "science_annotation.mask"],
+    "visual_hints": ["fish_eye", "dark_streaks_on_bright_background", "medium_resolution"],
+    "typical_resolution": "1024x1024",
+    "references": [
+      {"label": "GNSS/ionosphere community data practices (IAGA)", "url": "https://www.iaga-aiga.org/"}
+    ],
+    "notes": "Irregular polygons; band depletion audit; not HEK boxes."
+  },
+  {
+    "archetype_id": "ulf_magnetometer_pi2",
+    "title": "Ground magnetometer 1Hz CSV + ulf event windows",
+    "pipeline": "ULF",
+    "physics_track": "pi2_bandpass_hilbert",
+    "layout_hints": ["flat_csv_json"],
+    "annotation_markers": ["ulf_event_annotation", "basic_annotation.fileName.csv"],
+    "visual_hints": ["time_series_waveform", "no_png"],
+    "references": [
+      {"label": "INTERMAGNET technical manual (data formats)", "url": "https://tech-man.intermagnet.org/latest/appendices/dataformats.html"},
+      {"label": "ImagCDF TN8", "url": "https://intermagnet.org/docs/technical/im_tn_8_ImagCDF.pdf"},
+      {"label": "INTERMAGNET data portal", "url": "https://intermagnet.org/data_download.html"},
+      {"label": "geomag-lib-python", "url": "https://github.com/INTERMAGNET/geomag-lib-python"}
+    ],
+    "notes": "Paired <id>.csv + <id>.csv.json; text-only Pass2."
+  },
+  {
+    "archetype_id": "generic_timeseries_labeled",
+    "title": "Generic geophysical time-series + sidecar JSON (non-ULF Pi2)",
+    "pipeline": "ULF",
+    "physics_track": "custom_window_audit",
+    "layout_hints": ["flat_csv_json"],
+    "annotation_markers": ["basic_annotation"],
+    "visual_hints": ["time_series_waveform", "no_png"],
+    "references": [
+      {"label": "IAGA-2002 format", "url": "https://tech-man.intermagnet.org/latest/appendices/dataformats.html"}
+    ],
+    "notes": "Fallback when csv+json but no ulf_event key yet—router still uses schema override to ULF track for QC spine."
+  },
+  {
+    "archetype_id": "generic_spatial_boxes",
+    "title": "Generic full-disk or cropped imagery + box/special-shape JSON",
+    "pipeline": "AIA",
+    "physics_track": "ring_contrast_delta",
+    "layout_hints": ["data/label", "flat_png_json"],
+    "annotation_markers": ["science_annotation", "hek_event_annotation", "specialShapes"],
+    "visual_hints": ["full_disk_bright", "high_resolution"],
+    "references": [
+      {"label": "HEK", "url": "https://lmsal.com/hek/api.html"}
+    ],
+    "notes": "CME / HMI / multispectral overlays map here until dedicated physics tracks are added."
+  }
+]

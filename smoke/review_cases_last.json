@@ -1,0 +1,24 @@
+{
+  "cases": [
+    {
+      "objectId": "09u_N3cnKxe68a0ma7Bc.png",
+      "review_png_exists": true,
+      "review_png": "/Users/rayana/Desktop/空间科学/路演结果/EPB_fbbqy_sample_review/test_09u_N3cnKxe68a0ma7Bc.png",
+      "n_regions": 1,
+      "objectOverall": "待判定",
+      "九3b_轮廓贴合": "待判定",
+      "depletion_sigma_sample": null,
+      "expect": "offline: 九3b 待判定 unless physics jsonl; band depletion_sigma>0 for dark band",
+      "pass": true
+    },
+    {
+      "objectId": "Gb96QafrHF4ZNGdUa6Va.png",
+      "n_regions": 2,
+      "objectOverall": "待判定",
+      "九9_覆盖异常": "不适用",
+      "miss_candidates": 1,
+      "expect": "2 HEK boxes; bright_unlabeled candidates likely (HEK≠漏标终判); 九9 often 不通过(IoU)",
+      "pass": true
+    }
+  ]
+}

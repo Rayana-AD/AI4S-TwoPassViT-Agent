@@ -1,0 +1,41 @@
+name: 星海舰队-空间科学数据质量智能体
+version: roadshow-20261105
+orchestration: sequential-pipeline
+decisionPoints:
+  - modality_detect
+  - physics_pass1
+  - physics_pass2
+  - object_qc_csv
+  - directory_postprocess
+concurrency:
+  physics_api_workers: 6
+  qc_jobs: 8
+stateManagement: filesystem_per_run
+randomSeed: 0
+runtime:
+  python: "3.11"
+  entry: agent/run_pipeline.py
+  dockerImage: space-science-agent:latest
+guardrails:
+  - no_secrets_in_repo
+  - frozen_jsonl_for_scoring_replay
+  - audit_log_append_only
+subAgents:
+  - id: aia_qc
+    modality: AIA
+    script: aia_dir_object_qc_csv.py
+  - id: epb_qc
+    modality: EPB
+    script: epb_dir_object_qc_csv.py
+  - id: ulf_qc
+    modality: ULF
+    script: ulf_dir_object_qc_csv.py
+  - id: dataset_router
+    experimental: true
+    module: package/agent_modules/dataset_router
+    script: package/scripts/run_dataset_router.py
+  - id: scientific_debater
+    experimental: true
+    module: package/agent_modules/scientific_debater
+    script: package/scripts/run_scientific_debater.py
+    note: outputs under experiments/scientific_debater only; not in 星海舰队 delivery
