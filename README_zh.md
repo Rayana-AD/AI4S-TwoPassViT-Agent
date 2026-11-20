@@ -102,9 +102,47 @@ flowchart LR
 
 ---
 
+## 与一般「LLM Agent」范式的联系与区别
+
+| 常见范式（CrewAI / ReAct / 工具调用对话） | 本项目 |
+|----------------------------------------|--------|
+| **ReAct** 开放式循环，模型自选工具直到结束 | **固定 DAG**：规则脚本 → Pass1 → 指标审计 → Pass2；Debater 为**可选侧枝** |
+| **多 Agent** 角色群聊协作 | **单编排入口**（`run_pipeline.py`）+ **分阶段辩题**（每阶段固定交付物） |
+| 跨会话 **向量长期记忆** | 基准评测 **run 级隔离**；辩题侧 **分阶段裁剪上下文**，防串扰 |
+| 模型在文案中**猜数字** | 数字由 **Python 物理算子**产出；Pass2 **强制引用**（ULF Pass2 **纯文本、不传波形图**） |
+| **Function Calling** 调 HTTP/数据库 | 「工具」= **批处理 QC 脚本**；扩展轨增加 **沙箱内代码生成** |
+| 单轮 Prompt / 纯 CoT 做质检 | **两阶段** + 中间 jsonl + **九类缺陷** CSV 契约 |
+| 全链路 LangGraph | `graph.py` 用于记录级规则图；主路展为 **子进程流水线** 以保证可复现 |
+
+**一句话**：更接近 **Agent Harness + 领域工作流**，大模型做**有锚点的终审 / 代码起草**，而非对话即评分。
+
+---
+
+## 安全性与可信（模型 + 代码）
+
+| 层级 | 机制 |
+|------|------|
+| **防幻觉** | Pass2 须引用标量；ULF 的 **DSP 在本地算完** 再喂文本 Pass2 |
+| **基准集防污染** | 冻结 **12 个 dirId** → 纯规则轨，**关闭 Debater**，辅助脚本不进入计分路径 |
+| **模型生成代码** | `script_sandbox.py`：AST 白名单 import、禁止 `exec/eval/__import__`、只读 `open`、返回值须 JSON 可序列化 |
+| **辅助指标边界** | 仅当设置 `DEBATER_AUXILIARY_SCRIPT` 时桥接；**不替代** `objectOverall` 主轨输出 |
+| **教学安全** | `do_not_copy_when` 对远族仪器 **降级提示**，避免跨域照搬深测逻辑 |
+| **供应链** | 仓库无密钥；可选挂载 `secrets.yaml`；离线 Debater / 烟测 **无需外网** |
+| **回归门禁** | `smoke_test` 指纹 + `verify_extended_pipeline` + `check_pipeline_completeness` |
+
+---
+
 ## 可视化 Gallery
 
-### 三模态主轨（规则 + 两阶段）
+### 演示视频关键帧（非封面）
+
+截取自 [`agent_workflow_demo.mp4`](docs/media/agent_workflow_demo.mp4)、[`ulf_signal_pipeline_demo.mp4`](docs/media/ulf_signal_pipeline_demo.mp4)。
+
+| AIA 两阶段界面 | EPB 两阶段界面 | ULF 滤波 / Pass2 轨 |
+|:---:|:---:|:---:|
+| ![](docs/gallery/demo_keyframe_aia_pass.png) | ![](docs/gallery/demo_keyframe_epb_pass.png) | ![](docs/gallery/demo_keyframe_ulf_pass.png) |
+
+### 模态说明海报（仅封面示意）
 
 | AIA 太阳 EUV | EPB 气辉 | ULF 脉动 |
 |:---:|:---:|:---:|

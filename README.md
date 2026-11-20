@@ -102,9 +102,47 @@ Legend: **solid** = deterministic Python; **dashed policy** = LLM only when secr
 
 ---
 
+## vs typical “LLM Agent” stacks
+
+| Typical pattern (CrewAI / ReAct / tool-calling chat) | This project |
+|------------------------------------------------------|--------------|
+| Open-ended **ReAct** loop: model picks tools until stop | **Fixed DAG**: rule scripts → Pass1 → metric audit → Pass2; optional Debater is a **side branch** |
+| **Multi-agent** roles negotiate in chat | **Single orchestrator** (`run_pipeline.py`) + phase-structured **Debater** (deliverables per stage) |
+| Long **vector memory** across sessions | **Run-local memory** for benchmarks; Debater uses **phase-trimmed context** (no cross-run leakage) |
+| Model **computes or guesses** numbers in prose | Numbers come from **Python physics ops**; Pass2 must **quote** them (ULF Pass2 is **text-only**, no waveform image) |
+| **Function calling** to HTTP/DB tools | “Tools” are **batch QC scripts**; extension track adds **sandboxed code generation** (`auxiliary_metrics`) |
+| One-shot or CoT prompt for QC | **Two-pass** with mandatory intermediate jsonl + **nine-defect** CSV schema |
+| LangGraph everywhere | LangGraph in **`graph.py`** (record-level rules); main roadshow path is **subprocess pipeline** for reproducibility |
+
+**Takeaway:** closer to **agent harness + domain workflow** than a general conversational agent—the LLM is a **grounded judge / code drafter**, not the score owner.
+
+---
+
+## Safety & trust (model + code)
+
+| Layer | What we enforce |
+|-------|------------------|
+| **Anti-hallucination** | Pass2 prompts require cited scalars; ULF decouples waveform **DSP in Python** from Pass2 **text** reasoning |
+| **Benchmark integrity** | Frozen **12 dir IDs** → rule-only track, Debater **disabled**, no auxiliary injection on the scoring path |
+| **LLM-generated code** | `script_sandbox.py`: AST allow-list imports, blocked `exec/eval/__import__`, read-only `open`, JSON-serializable returns only |
+| **Auxiliary scope** | `auxiliary_bridge` only runs when `DEBATER_AUXILIARY_SCRIPT` is set; does **not** replace `objectOverall` QC |
+| **Teaching safety** | `do_not_copy_when` downgrades prompts for **far** instrument families to avoid cross-domain copy-paste |
+| **Supply chain** | No secrets in repo; `secrets.yaml` mount optional; offline Debater / smoke paths need **no API** |
+| **Regression** | `smoke_test` fingerprints + `verify_extended_pipeline` + `check_pipeline_completeness` |
+
+---
+
 ## Gallery
 
-### Core modalities (rule + two-pass)
+### Demo keyframes (from workflow videos)
+
+Frames extracted from [`agent_workflow_demo.mp4`](docs/media/agent_workflow_demo.mp4) and [`ulf_signal_pipeline_demo.mp4`](docs/media/ulf_signal_pipeline_demo.mp4)—**not** marketing covers.
+
+| AIA two-pass UI | EPB two-pass UI | ULF filter / Pass2 track |
+|:---:|:---:|:---:|
+| ![](docs/gallery/demo_keyframe_aia_pass.png) | ![](docs/gallery/demo_keyframe_epb_pass.png) | ![](docs/gallery/demo_keyframe_ulf_pass.png) |
+
+### Modality summary posters (covers only)
 
 | AIA solar EUV | EPB airglow | ULF Pi2 waveform |
 |:---:|:---:|:---:|

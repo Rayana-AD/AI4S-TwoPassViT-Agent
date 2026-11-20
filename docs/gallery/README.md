@@ -1,15 +1,13 @@
 # Gallery (illustrative samples only)
 
-These assets are **redacted demonstration crops** for methodology illustration. They are **not** full datasets, directory dumps, or competition submission packages.
+Redacted crops for README illustration—not full datasets or competition packages.
 
 | File | Description |
 |------|-------------|
-| `architecture_two_pass_pipeline.jpg` | Two-pass rule + VLM pipeline overview |
-| `dual_track_router_overview.png` | Benchmark vs extended routing (schematic) |
-| `modality_*.png` | AIA / EPB / ULF modality summary posters |
-| `sample_epb_overlay_qc.png` | EPB mask overlay QC (single object) |
-| `sample_dmsp_aurora_uv.png` | DMSP SSUSI aurora family (single frame) |
-| `sample_cme_coronagraph.png` | Coronagraph CME family (single frame) |
-| `sample_aia_active_region.png` | Solar EUV AR family (downsampled frame) |
+| `demo_keyframe_*.png` | Frames from `docs/media/*.mp4` (two-pass UI / ULF pipeline) |
+| `modality_*.png` | **Summary posters** (covers), not video frames |
+| `architecture_two_pass_pipeline.jpg` | Legacy schematic (see README Mermaid for current flow) |
+| `dual_track_router_overview.png` | Dual-track schematic |
+| `sample_*.png` | Single-frame extension-track examples (EPB/DMSP/CME/AIA) |
 
-**Data policy:** Obtain full OPC roadshow data only through official channels. Do not expect raw archives in this repository.
+**Data policy:** Full OPC roadshow data only via official channels.
