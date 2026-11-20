@@ -21,11 +21,84 @@ Physics-informed, multi-modal **dataset quality inspection** agent for space-sci
 
 ## Architecture
 
-![Two-pass pipeline](docs/gallery/architecture_two_pass_pipeline.jpg)
+### 1) Entry: `run_pipeline.py` (benchmark vs extension)
 
-**Extended track (non-benchmark dirs):** `dataset_router` → optional `scientific_debater` (v0→v1→v2) → env-gated bridge into Pass 1.
+```mermaid
+flowchart TD
+  IN([Dataset directory]) --> GATE{dirId in frozen<br/>12 benchmark set?}
+  GATE -->|yes| RULE[Legacy rule track<br/>modality_detect]
+  GATE -->|no| ROUTER[Dataset Router<br/>profile + visual probe + RAG]
+  RULE --> MOD{AIA / EPB / ULF}
+  ROUTER --> MOD
+  MOD --> DEB{Debater enabled?}
+  DEB -->|12-dir: forced off| QC
+  DEB -->|extended: optional| DEBATER[Scientific Debater<br/>v0→v1→v2 sandbox]
+  DEBATER -->|DEBATER_AUXILIARY_SCRIPT| QC
+  DEB -->|off| QC[Dir object QC script<br/>per modality]
+  QC --> PHYS[physics_informed_*.py<br/>Pass1 + Pass2]
+  PHYS --> CSV[Object QC CSV + jsonl]
+  CSV --> PP{--postprocess?}
+  PP -->|yes| POST[dir_postprocess<br/>scorecard]
+  PP -->|no| OUT([ROADSHOW_RESULTS])
+  POST --> OUT
+```
 
-![Dual track](docs/gallery/dual_track_router_overview.png)
+### 2) Per-sample two-pass (rules first, LLM grounds on numbers)
+
+```mermaid
+flowchart LR
+  subgraph prep [Local prepare_*]
+    R0[Rule pre-checks<br/>pairing / bounds]
+    R1[Physics metrics<br/>rings bands filters]
+    R2[Overlay / waveform chart]
+  end
+  subgraph p1 [Pass 1]
+    V1[Vision or text model<br/>structure + candidates]
+  end
+  subgraph mid [Script audit]
+    M1[Ring / band / window audit]
+    M2[Miss-candidate merge]
+  end
+  subgraph p2 [Pass 2]
+    V2[Vision EPB AIA or<br/>text-only ULF]
+    V2rule[must cite metric values]
+  end
+  R0 --> R1 --> R2 --> V1 --> M1 --> M2 --> V2
+  V2 --> V2rule --> JOUT([objectOverall jsonl])
+```
+
+| Modality | Pass 1 input | Metrics (examples) | Pass 2 model |
+|----------|----------------|-------------------|--------------|
+| **AIA** | EUV + JSON overlay | ring contrast Δ, missed bright candidates | Vision |
+| **EPB** | Airglow + mask overlay | band depletion σ, area vs median | Vision |
+| **ULF** | Band-pass + Hilbert plot (no image to Pass 2) | Pi2 window SNR, energy ratio | **Text only** |
+
+### 3) ULF pipeline detail (same pattern as diagram above)
+
+```mermaid
+flowchart TB
+  U0[ULF rules<br/>csv/json pairing windows] --> U1[prepare_ulf<br/>6.7–25 mHz BP + envelope]
+  U1 --> U2[Pass1 text/vision on waveform<br/>threshold_proposal window_audit]
+  U2 --> U3[Intermediate script<br/>merge thresholds overlap PI2]
+  U3 --> U4[Pass2 text model<br/>miss_burst_audit grounded verdict]
+  U4 --> U5[ulf_dir_object_qc_csv row]
+```
+
+### 4) Extension: Debater → main track (env-gated)
+
+```mermaid
+flowchart LR
+  RT[Router archetype] --> TCH[Teaching gate<br/>near vs far family]
+  TCH --> PH[Debate phases<br/>task → visual → metrics → draft]
+  PH --> V0[v0 draft script]
+  V0 --> SB[AST sandbox lint + run]
+  SB --> V1[v1 calibrate on samples]
+  V1 --> V2[v2 self-audit refine]
+  V2 --> BR[auxiliary_bridge optional]
+  BR --> P1[Pass1 item metrics]
+```
+
+Legend: **solid** = deterministic Python; **dashed policy** = LLM only when secrets mounted; benchmark dirs **never** attach Debater output to scoring path.
 
 ---
 

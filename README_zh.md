@@ -21,11 +21,84 @@
 
 ## 架构示意
 
-![两阶段管线](docs/gallery/architecture_two_pass_pipeline.jpg)
+### 1）统一入口 `run_pipeline.py`（基准集 vs 扩展轨）
 
-**扩展轨（非基准目录）：** `dataset_router` → 可选 `scientific_debater`（v0→v1→v2）→ 环境变量门控注入 Pass1。
+```mermaid
+flowchart TD
+  IN([待检目录]) --> GATE{dirId 属于冻结的<br/>12 个基准目录?}
+  GATE -->|是| RULE[规则轨 modality_detect]
+  GATE -->|否| ROUTER[Dataset Router<br/>画像 + 视觉探针 + RAG]
+  RULE --> MOD{AIA / EPB / ULF}
+  ROUTER --> MOD
+  MOD --> DEB{Debater?}
+  DEB -->|12 目录: 强制关闭| QC
+  DEB -->|扩展目录: 可选| DEBATER[Scientific Debater<br/>v0→v1→v2 沙箱]
+  DEBATER -->|DEBATER_AUXILIARY_SCRIPT| QC
+  DEB -->|off| QC[对象级 QC 脚本]
+  QC --> PHYS[physics_informed_*<br/>Pass1 + Pass2]
+  PHYS --> CSV[对象 CSV + jsonl]
+  CSV --> PP{后处理?}
+  PP -->|是| POST[dir_postprocess 评分卡]
+  PP -->|否| OUT([ROADSHOW_RESULTS])
+  POST --> OUT
+```
 
-![双轨分流](docs/gallery/dual_track_router_overview.png)
+### 2）单样本两阶段（先算后判，Pass2 必须引用数值）
+
+```mermaid
+flowchart LR
+  subgraph prep [本地 prepare_*]
+    R0[规则预检<br/>配对/越界]
+    R1[物理算子<br/>环带/窄带/滤波]
+    R2[叠加图或波形图]
+  end
+  subgraph p1 [Pass1]
+    V1[视觉或文本模型<br/>结构理解 + 候选]
+  end
+  subgraph mid [脚本审计]
+    M1[环带/带通/窗口审计]
+    M2[漏标候选合并]
+  end
+  subgraph p2 [Pass2]
+    V2[视觉 AIA EPB 或<br/>纯文本 ULF]
+    V2rule[理由须含算子数值]
+  end
+  R0 --> R1 --> R2 --> V1 --> M1 --> M2 --> V2
+  V2 --> V2rule --> JOUT([objectOverall])
+```
+
+| 模态 | Pass1 | 典型算子 | Pass2 |
+|------|-------|----------|-------|
+| **AIA** | 日冕 EUV + 标注叠加 | 外向环带对比度 Δ、漏标亮斑候选 | 视觉终审 |
+| **EPB** | 气辉 + 掩膜叠加 | 外扩窄带耗空 σ、面积比 | 视觉终审 |
+| **ULF** | 滤波波形图（Pass2 **不传图**） | 带通包络、峰噪比、能量窗 | **纯文本**终审 |
+
+### 3）ULF 专用链路（与赛题流程图一致）
+
+```mermaid
+flowchart TB
+  U0[ULF 规则<br/>csv/json 配对 时段窗] --> U1[prepare_ulf<br/>6.7–25 mHz 滤波 + 包络]
+  U1 --> U2[Pass1 波形理解<br/>threshold_proposal window_audit]
+  U2 --> U3[中间脚本<br/>合并阈值 重叠 PI2 分类]
+  U3 --> U4[Pass2 文本模型<br/>miss_burst_audit 数值终裁]
+  U4 --> U5[写入 ULF 对象质检 CSV]
+```
+
+### 4）扩展轨：Debater 衔接主轨（环境变量门控）
+
+```mermaid
+flowchart LR
+  RT[Router 原型] --> TCH[Teaching 门控<br/>同族/远族分级]
+  TCH --> PH[辩题阶段<br/>任务→视觉→指标→草案]
+  PH --> V0[v0 脚本]
+  V0 --> SB[AST 沙箱 lint + 试跑]
+  SB --> V1[v1 样本校准]
+  V1 --> V2[v2 自审 refine]
+  V2 --> BR[auxiliary_bridge 可选]
+  BR --> P1[注入 Pass1 上下文]
+```
+
+图例：**实线框** = 本地 Python 确定性步骤；**12 基准目录**不走 Debater 注入评分路径。
 
 ---
 
